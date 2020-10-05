@@ -6,21 +6,51 @@
 
 <h2>Login</h2>
 
-@using (Html.BeginForm("Login", "Account", FormMethod.Post))
-{
+<form id="loginForm" action="/account/login" method="post" novalidate>
     <div class="form-group">
-        @Html.TextBoxFor(x => x.Email, new { @class = "form-control" })
-        @Html.ValidationMessageFor(x => x.Email)
+        <input type="email" class="form-control" id="txtEmail" />
     </div>
     <div class="form-group">
-        @Html.PasswordFor(x => x.Password, new { @class = "form-control" })
-        @Html.ValidationMessageFor(x => x.Password)
+        <input type="password" class="form-control" id="txtPassword" />
     </div>
     <div class="form-group">
-        <button class="btn btn-success" type="submit" value="submit">Submit</button>
+        <button class="btn btn-success" type="submit" value="submit">Login</button>
     </div>
-}
+</form>
 
 <br />
 <br />
-@ViewBag.msg
+
+<p id="msg"></p>
+
+@Scripts.Render("~/bundles/jquery")
+<script>
+    $(document).ready(function () {
+        $('#loginForm').on('submit', function (e) {
+            e.preventDefault();
+
+            var txtEmail = $('#txtEmail').val();
+            var txtPassword = $('#txtPassword').val();
+
+            var user = {
+                Email: txtEmail,
+                Password: txtPassword
+            }
+
+            $.ajax({
+                type: "post",
+                url: "/account/login/",
+                data: user,
+                datatype: 'json',
+                success: function (data) {
+                    if (data.status) {
+                        $('#msg').html(data.message);
+                    }
+                    else {
+                        alert(data.message);
+                    }
+                }
+            })
+        });
+    });
+</script>

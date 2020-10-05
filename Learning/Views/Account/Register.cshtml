@@ -6,29 +6,71 @@
 
 <h2>Register</h2>
 
-@using(Html.BeginForm("Register", "Account", FormMethod.Post))
-{
-<div class="form-group">
-    @Html.TextBoxFor(x => x.Full_Name, new { @class = "form-control" })
-    @Html.ValidationMessageFor(x => x.Full_Name)
-</div>
-<div class="form-group">
-    @Html.TextBoxFor(x => x.Email, new { @class = "form-control" })
-    @Html.ValidationMessageFor(x => x.Email)
-</div>
-<div class="form-group">
-    @Html.PasswordFor(x => x.Password, new { @class = "form-control" })
-    @Html.ValidationMessageFor(x => x.Password)
-</div>
-<div class="form-group">
-    @Html.PasswordFor(x => x.ConfirmPassword, new { @class = "form-control" })
-    @Html.ValidationMessageFor(x => x.ConfirmPassword)
-</div>
-<div class="form-group">
-    <button class="btn btn-success" type="submit" value="submit">Submit</button>
-</div>
-    }
+<form id="signupForm" action="/Account/Register" method="post" novalidate>
+    <div class="form-group">
+        <input type="text" class="form-control" id="txtFullName" />
+        @*@Html.TextBoxFor(x => x.Full_Name, new { @class = "form-control", })
+            @Html.ValidationMessageFor(x => x.Full_Name)*@
+    </div>
+    <div class="form-group">
+        <input type="email" class="form-control" id="txtEmail" />
+
+        @*@Html.TextBoxFor(x => x.Email, new { @class = "form-control" })
+            @Html.ValidationMessageFor(x => x.Email)*@
+    </div>
+    <div class="form-group">
+        <input type="password" class="form-control" id="txtPassword" />
+
+        @*@Html.PasswordFor(x => x.Password, new { @class = "form-control" })
+            @Html.ValidationMessageFor(x => x.Password)*@
+    </div>
+    <div class="form-group">
+        <input type="password" class="form-control" id="txtConfirmPassword" />
+
+        @*@Html.PasswordFor(x => x.ConfirmPassword, new { @class = "form-control" })
+            @Html.ValidationMessageFor(x => x.ConfirmPassword)*@
+    </div>
+    <div class="form-group">
+        <button class="btn btn-success" type="submit" value="submit">Register</button>
+    </div>
+</form>
 
 <br />
 <br />
-@ViewBag.msg
+
+@Scripts.Render("~/bundles/jquery")
+<script>
+    $(document).ready(function () {
+        $('#signupForm').on('submit', function (e) {
+            e.preventDefault();
+
+            var txtFullName = $('#txtFullName').val();
+            var txtEmail = $('#txtEmail').val();
+            var txtPassword = $('#txtPassword').val();
+
+            //alert(txtFullName + "\n" + txtEmail + "\n" + txtPassword);
+
+            var user = {
+                Full_Name: txtFullName,
+                Email: txtEmail,
+                Password: txtPassword
+            }
+
+            $.ajax({
+                type: "post",
+                url: "/account/register/",
+                data: user,
+                datatype: 'json',
+                success: function (data) {
+                    if (data.status) {
+                        window.location.replace("/account/login");
+                        alert(data.message);
+                    }
+                    else {
+                        alert(data.message);
+                    }
+                }
+            })
+        });
+    });
+</script>

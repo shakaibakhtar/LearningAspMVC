@@ -27,21 +27,22 @@ namespace Learning.Controllers
 
                 if(db.Users.Where(x => x.Email.Equals(user.Email)).Count() > 0)
                 {
-                    ViewBag.msg = "User already exist";
+                    return new JsonResult { Data = new { status = false, message = "User already exists." } };
                 }
                 else
                 {
                     db.Users.Add(dbUser);
                     db.SaveChanges();
 
-                    return RedirectToAction("Login");
+                    return new JsonResult { Data = new { status = true, message = "Registered Successfully." } };
                 }
             }
             catch (Exception ex)
             {
-                ViewBag.msg = ex.StackTrace;
+                return new JsonResult { Data = new { status = false, message = ex.StackTrace } };
             }
-            return View();
+
+            return new JsonResult { Data = new { status = false, message = "Registration Failed." } };
         }
 
         public ActionResult Login()
@@ -56,18 +57,19 @@ namespace Learning.Controllers
             {
                 if(db.Users.Where(x=>x.Email.Equals(user.Email) && x.Password.Equals(user.Password)).Count() > 0)
                 {
-                    ViewBag.msg = "Login Successfull";
+                    return new JsonResult { Data = new { status = true, message = "Login Successfully." } };
                 }
                 else
                 {
-                    ViewBag.msg = "Invalid username or password";
+                    return new JsonResult { Data = new { status = false, message = "Invalid username or password." } };
                 }
             }
             catch (Exception ex)
             {
-                ViewBag.msg = ex.StackTrace;
+                return new JsonResult { Data = new { status = false, message = ex.StackTrace } };
             }
-            return View();
+
+            return new JsonResult { Data = new { status = false, message = "Login failed." } };
         }
     }
 }
