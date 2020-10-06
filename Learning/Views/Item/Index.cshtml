@@ -1,0 +1,37 @@
+﻿@model Learning.ViewModel.ItemViewModel
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<a href="/Item/Create" class="btn btn-success">Add Item</a>
+
+
+@if (Model.ItemsList != null)
+{
+<table class="table-bordered table-responsive" style="width: 50%;">
+    <tr>
+        <th>ID</th>
+        <th>Item Name</th>
+        <th>Action</th>
+    </tr>
+
+    @foreach (var item in Model.ItemsList)
+    {
+        <tr>
+            <td>@item.id</td>
+            <td>@item.Name</td>
+            <td><a href="/Item/Read?id=@item.id" class="btn btn-info">Detail</a><a href="/Item/Update?id=@item.id" class="btn btn-warning">Edit</a><a href="/Item/Delete?id=@item.id" class="btn btn-danger">Delete</a></td>
+        </tr>
+    }
+
+</table>
+}
+else
+{
+    <p>No items found</p>
+}
+<br />
+<br />
+<p>@ViewBag.msg</p>
+

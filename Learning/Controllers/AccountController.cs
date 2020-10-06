@@ -31,8 +31,11 @@ namespace Learning.Controllers
                 }
                 else
                 {
-                    db.Users.Add(dbUser);
+                    var usr = db.Users.Add(dbUser);
                     db.SaveChanges();
+
+                    Session["UserId"] = usr.Id;
+                    Session["UserFullName"] = usr.Full_Name;
 
                     return new JsonResult { Data = new { status = true, message = "Registered Successfully." } };
                 }
@@ -41,8 +44,6 @@ namespace Learning.Controllers
             {
                 return new JsonResult { Data = new { status = false, message = ex.StackTrace } };
             }
-
-            return new JsonResult { Data = new { status = false, message = "Registration Failed." } };
         }
 
         public ActionResult Login()
@@ -55,8 +56,11 @@ namespace Learning.Controllers
         {
             try
             {
-                if(db.Users.Where(x=>x.Email.Equals(user.Email) && x.Password.Equals(user.Password)).Count() > 0)
+                var usr = db.Users.Where(x => x.Email.Equals(user.Email) && x.Password.Equals(user.Password)).FirstOrDefault();
+                if (usr != null)
                 {
+                    Session["UserId"] = usr.Id;
+                    Session["UserFullName"] = usr.Full_Name;
                     return new JsonResult { Data = new { status = true, message = "Login Successfully." } };
                 }
                 else
@@ -68,8 +72,13 @@ namespace Learning.Controllers
             {
                 return new JsonResult { Data = new { status = false, message = ex.StackTrace } };
             }
+        }
 
-            return new JsonResult { Data = new { status = false, message = "Login failed." } };
+        public ActionResult Logout()
+        {
+            Session.Abandon();
+
+            return RedirectToAction("Login");
         }
     }
 }

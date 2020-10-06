@@ -1,0 +1,23 @@
+﻿@model Learning.ViewModel.ItemViewModel
+
+@{
+    ViewBag.Title = "Create";
+}
+
+<h3>Create Item</h3>
+
+@using (Html.BeginForm("Create", "Item", FormMethod.Post))
+{
+    <div class="form-group">
+        @Html.TextBoxFor(x => x.Item.Name, new { @class = "form-control", @placeholder = "Item Name" })
+        @Html.ValidationMessageFor(x => x.Item.Name)
+    </div>
+    <div class="form-group">
+        <input type="submit" value="submit" class="btn btn-success" />
+    </div>
+}
+
+<br />
+<br />
+<p>@ViewBag.msg</p>
+

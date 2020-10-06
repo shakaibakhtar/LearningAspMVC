@@ -1,0 +1,33 @@
+﻿@model Learning.Models.ItemModel
+
+@{
+    ViewBag.Title = "Update";
+}
+
+<h2>Update</h2>
+@if (Model != null)
+{
+    using (Html.BeginForm("Update", "Item", FormMethod.Post))
+    {
+        <div class="form-group">
+            @Html.TextBoxFor(x => x.id, Model.id.ToString(), new { @class = "form-control", @style = "display: none;" })
+        </div>
+        <div class="form-group">
+            @Html.TextBoxFor(x => x.Name, Model.Name, new { @class = "form-control", @placeholder = "Item Name" })
+            @Html.ValidationMessageFor(x => x.Name)
+        </div>
+        <div class="form-group">
+            <input type="submit" value="submit" class="btn btn-success" />
+        </div>
+    }
+}
+else
+{
+    <script>
+        window.location.replace("/item/index");
+    </script>
+}
+
+<br />
+<br />
+<p>@ViewBag.msg</p>

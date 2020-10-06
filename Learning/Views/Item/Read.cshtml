@@ -1,0 +1,21 @@
+﻿@model Learning.Models.ItemModel
+
+@{
+    ViewBag.Title = "Read";
+}
+
+<h2>Read</h2>
+
+@if (Model != null)
+{
+    <ul>
+        <li><b>Item ID: </b>@Model.id</li>
+        <li><b>Item Name: </b>@Model.Name</li>
+    </ul>
+}
+else
+{
+    <script>
+        window.location.replace("/item/index");
+    </script>
+}
