@@ -14,22 +14,33 @@ namespace Learning.Controllers
 
         public ActionResult Index()
         {
-            try
-            {
-                var ItemsList = db.Items.Select(x => new ItemModel
-                {
-                    id = x.id,
-                    Name = x.Name
-                }).ToList();
-
-                return View(new ItemViewModel() { ItemsList = ItemsList });
-            }
-            catch (Exception ex)
-            {
-                ViewBag.msg = ex.StackTrace;
-            }
-
             return View();
+        }
+
+        public ActionResult GetAllItems()
+        {
+            var draw = Request.Form.GetValues("draw").FirstOrDefault();
+            var start = Request.Form.GetValues("start").FirstOrDefault();
+            var length = Request.Form.GetValues("length").FirstOrDefault();
+            var sortColumn = Request.Form.GetValues("columns[" + Request.Form.GetValues("order[0][column]").FirstOrDefault()
+                                    + "][name]").FirstOrDefault();
+            var sortColumnDir = Request.Form.GetValues("order[0][dir]").FirstOrDefault();
+
+            var brandname = Request.Form.GetValues("columns[0][search][value]").FirstOrDefault();
+            int pageSize = length != null ? Convert.ToInt32(length) : 0;
+            int skip = start != null ? Convert.ToInt32(start) : 0;
+
+            List<ItemModel> listsub = db.Items.Select(x => new ItemModel()
+            {
+                id = x.id,
+                Name = x.Name
+            }).ToList();
+
+            int recordsTotal = listsub.Count;
+            listsub = listsub.Skip(skip).Take(pageSize).ToList();
+            var data = listsub.ToList();
+            return Json(new { draw = draw, recordsFiltered = recordsTotal, recordsTotal = recordsTotal, data = data },
+                JsonRequestBehavior.AllowGet);
         }
 
         // GET: Item
@@ -62,22 +73,20 @@ namespace Learning.Controllers
 
                 if (db.Items.Where(x => x.Name.Equals(item.Name)).Count() > 0)
                 {
-                    ViewBag.msg = "Item already exists.";
+                    return Json(new { Status = false, Data = "Item already exists." }, JsonRequestBehavior.AllowGet);
                 }
                 else
                 {
                     var usr = db.Items.Add(itm);
                     db.SaveChanges();
 
-                    ViewBag.msg = "Item added Successfully.";
+                    return Json(new { Status = true, Data = "Item added Successfully." }, JsonRequestBehavior.AllowGet);
                 }
             }
             catch (Exception ex)
             {
-                ViewBag.msg = ex.StackTrace;
+                return Json(new { Status = true, Data = ex.StackTrace }, JsonRequestBehavior.AllowGet);
             }
-
-            return View();
         }
 
         public ActionResult Read(int? id = 0)
@@ -123,19 +132,31 @@ namespace Learning.Controllers
             try
             {
                 var itm = db.Items.Where(x => x.id == item.id).FirstOrDefault();
-                itm.Name = item.Name;
 
-                db.SaveChanges();
+                if (itm != null)
+                {
+                    if (db.Items.Where(x => x.Name.Equals(item.Name)).Count() > 0)
+                    {
+                        return Json(new { Status = false, Data = "Item already exists." }, JsonRequestBehavior.AllowGet);
+                    }
+                    else
+                    {
+                        itm.Name = item.Name;
 
-                ViewBag.msg = "Item Updated Successfully";
+                        db.SaveChanges();
+
+                        return Json(new { Status = true, Data = "Item Updated Successfully" });
+                    }
+                }
+                return Json(new { Status = false, Data = "Item Not Found" });
             }
             catch (Exception ex)
             {
-                ViewBag.msg = ex.Message;
+                return Json(new { Status = false, Data = ex.StackTrace });
             }
-            return View();
         }
 
+        [HttpPost]
         public ActionResult Delete(int? id = 0)
         {
             try
@@ -144,22 +165,20 @@ namespace Learning.Controllers
 
                 if (itm == null)
                 {
-                    return RedirectToAction("Index");
+                    return Json(new { Status = true, Data = "Item Not Found." });
                 }
                 else
                 {
                     db.Items.Remove(itm);
                     db.SaveChanges();
 
-                    ViewBag.msg = "Item Deleted Successfully.";
-                    return RedirectToAction("Index");
+                    return Json(new { Status = true, Data = "Item Deleted Successfully." });
                 }
             }
             catch (Exception ex)
             {
-                ViewBag.msg = ex.StackTrace;
+                return Json(new { Status = false, Data = ex.StackTrace });
             }
-            return RedirectToAction("Index");
         }
     }
 }
