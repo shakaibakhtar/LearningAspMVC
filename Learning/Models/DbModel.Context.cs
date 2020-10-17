@@ -12,6 +12,8 @@ namespace Learning.Models
     using System;
     using System.Data.Entity;
     using System.Data.Entity.Infrastructure;
+    using System.Data.Entity.Core.Objects;
+    using System.Linq;
     
     public partial class LearningDbEntities : DbContext
     {
@@ -27,5 +29,32 @@ namespace Learning.Models
     
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<Item> Items { get; set; }
+        public virtual DbSet<tblCountry> tblCountries { get; set; }
+    
+        public virtual int sp_insert_dummy()
+        {
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("sp_insert_dummy");
+        }
+    
+        public virtual int spInsertUpdateItem(Nullable<int> itemId, string itemName, Nullable<int> countryId, string insertUpdateStatus, ObjectParameter checkReturn)
+        {
+            var itemIdParameter = itemId.HasValue ?
+                new ObjectParameter("ItemId", itemId) :
+                new ObjectParameter("ItemId", typeof(int));
+    
+            var itemNameParameter = itemName != null ?
+                new ObjectParameter("ItemName", itemName) :
+                new ObjectParameter("ItemName", typeof(string));
+    
+            var countryIdParameter = countryId.HasValue ?
+                new ObjectParameter("CountryId", countryId) :
+                new ObjectParameter("CountryId", typeof(int));
+    
+            var insertUpdateStatusParameter = insertUpdateStatus != null ?
+                new ObjectParameter("InsertUpdateStatus", insertUpdateStatus) :
+                new ObjectParameter("InsertUpdateStatus", typeof(string));
+    
+            return ((IObjectContextAdapter)this).ObjectContext.ExecuteFunction("spInsertUpdateItem", itemIdParameter, itemNameParameter, countryIdParameter, insertUpdateStatusParameter, checkReturn);
+        }
     }
 }

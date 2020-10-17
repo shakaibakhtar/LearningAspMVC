@@ -2,6 +2,9 @@
 using Learning.ViewModel;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
+using System.Data;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
@@ -11,6 +14,10 @@ namespace Learning.Controllers
     public class ItemController : Controller
     {
         LearningDbEntities db = new LearningDbEntities();
+        SqlConnection con;
+        SqlCommand cmd;
+
+        string connString = ConfigurationManager.ConnectionStrings["ADO"].ConnectionString;
 
         public ActionResult Index()
         {
@@ -30,11 +37,47 @@ namespace Learning.Controllers
             int pageSize = length != null ? Convert.ToInt32(length) : 0;
             int skip = start != null ? Convert.ToInt32(start) : 0;
 
-            List<ItemModel> listsub = db.Items.Select(x => new ItemModel()
+            ///////////////////////////////////////////////////////////////
+
+            List<ItemModel> listsub = new List<ItemModel>();
+
+            DataTable dt = new DataTable();
+            try
             {
-                id = x.id,
-                Name = x.Name
-            }).ToList();
+                SqlConnection con = new SqlConnection(connString);
+                con.Open();
+
+                SqlCommand cmd = new SqlCommand("spGetItemsList", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                SqlDataReader reader = cmd.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    ItemModel tmpItem = new ItemModel() {
+                        id = reader.GetInt32(0),
+                        Name = reader.GetString(1),
+                        Country = reader.GetString(2)
+                    };
+
+                    listsub.Add(tmpItem);
+                }
+
+                reader.Close();
+                con.Close();
+            }
+            catch (Exception ex)
+            {
+            }
+
+
+            ///////////////////////////////////////////////////////////////
+
+            //List<ItemModel> listsub = db.Items.Select(x => new ItemModel()
+            //{
+            //    id = x.id,
+            //    Name = x.Name,
+            //    CountryId = x.CountryId
+            //}).ToList();
 
             int recordsTotal = listsub.Count;
             listsub = listsub.Skip(skip).Take(pageSize).ToList();
@@ -46,46 +89,91 @@ namespace Learning.Controllers
         // GET: Item
         public ActionResult Create()
         {
-            try
-            {
-                var ItemsList = db.Items.Select(x => new ItemModel
-                {
-                    id = x.id,
-                    Name = x.Name
-                }).ToList();
+            ViewBag.Countries = new SelectList(db.tblCountries.OrderBy(x => x.name), "id", "name");
 
-                return View(new ItemViewModel() { ItemsList = ItemsList });
-            }
-            catch (Exception ex)
-            {
-                ViewBag.msg = ex.StackTrace;
-            }
+            //con = new SqlConnection(connString);
+
+            //try
+            //{
+            //    con.Open();
+            //    using (SqlCommand cmd = new SqlCommand("spInsertUpdateUnit", con))
+            //    {
+            //        cmd.CommandType = CommandType.StoredProcedure;
+            //        cmd.Parameters.Clear();
+            //        cmd.Parameters.Add("@CheckReturn", SqlDbType.NVarChar, 300).Direction = ParameterDirection.Output;
+            //        cmd.Dispose();
+            //    }
+            //    con.Close();
+            //    con.Dispose();
+            //}
+            //catch (Exception ex)
+            //{
+            //    returnId = ex.Message.ToString();
+            //    int? userId = User.UserId;
+            //    clsSqlErrorLog.InsertError(userId, ex.Message.ToString(), "Unit");
+            //}
+
+
+            //var ItemsList = db.Items.Select(x => new ItemModel
+            //{
+            //    id = x.id,
+            //    Name = x.Name
+            //}).ToList();
 
             return View();
         }
+
 
         [HttpPost]
         public ActionResult Create(ItemModel item)
         {
             try
             {
-                Item itm = new Item() { Name = item.Name };
+                con = new SqlConnection(connString);
+                cmd = new SqlCommand("spInsertUpdateItem", con);
+                cmd.CommandType = CommandType.StoredProcedure;
 
-                if (db.Items.Where(x => x.Name.Equals(item.Name)).Count() > 0)
+                cmd.Parameters.Add("@ItemId", SqlDbType.Int).Value = 0;
+                cmd.Parameters.Add("@ItemName", SqlDbType.NVarChar).Value = item.Name;
+                cmd.Parameters.Add("@InsertUpdateStatus", SqlDbType.NVarChar).Value = "Save";
+                cmd.Parameters.Add("@CountryId", SqlDbType.Int).Value = item.CountryId;
+                cmd.Parameters.Add("@CheckReturn", SqlDbType.NVarChar, 300).Direction = ParameterDirection.Output;
+
+
+                con.Open();
+                cmd.ExecuteNonQuery();
+
+                string msg = cmd.Parameters["@CheckReturn"].Value.ToString();
+                cmd.Dispose();
+                con.Close();
+
+                if (msg.Equals("Success"))
                 {
-                    return Json(new { Status = false, Data = "Item already exists." }, JsonRequestBehavior.AllowGet);
+                    return Json(new { Status = true, Data = "Item added Successfully." }, JsonRequestBehavior.AllowGet);
                 }
                 else
                 {
-                    var usr = db.Items.Add(itm);
-                    db.SaveChanges();
-
-                    return Json(new { Status = true, Data = "Item added Successfully." }, JsonRequestBehavior.AllowGet);
+                    return Json(new { Status = false, Data = "Item adding failed." }, JsonRequestBehavior.AllowGet);
                 }
+                //Item itm = new Item() { Name = item.Name };
+
+                //if (db.Items.Where(x => x.Name.Equals(item.Name)).Count() > 0)
+                //{
+                //    return Json(new { Status = false, Data = "Item already exists." }, JsonRequestBehavior.AllowGet);
+                //}
+                //else
+                //{
+                //    var usr = db.Items.Add(itm);
+                //    db.SaveChanges();
+
+                //    return Json(new { Status = true, Data = "Item added Successfully." }, JsonRequestBehavior.AllowGet);
+                //}
             }
             catch (Exception ex)
             {
-                return Json(new { Status = true, Data = ex.StackTrace }, JsonRequestBehavior.AllowGet);
+                cmd.Dispose();
+                con.Close();
+                return Json(new { Status = false, Data = ex.StackTrace }, JsonRequestBehavior.AllowGet);
             }
         }
 
@@ -112,6 +200,8 @@ namespace Learning.Controllers
         {
             try
             {
+                ViewBag.Countries = new SelectList(db.tblCountries.OrderBy(x => x.name), "id", "name");
+
                 var item = db.Items.Where(x => x.id == id).Select(x => new ItemModel
                 {
                     id = x.id,
@@ -129,30 +219,60 @@ namespace Learning.Controllers
         [HttpPost]
         public ActionResult Update(ItemModel item)
         {
+            string msg;
             try
             {
-                var itm = db.Items.Where(x => x.id == item.id).FirstOrDefault();
+                con = new SqlConnection(connString);
+                con.Open();
 
-                if (itm != null)
-                {
-                    if (db.Items.Where(x => x.Name.Equals(item.Name)).Count() > 0)
-                    {
-                        return Json(new { Status = false, Data = "Item already exists." }, JsonRequestBehavior.AllowGet);
-                    }
-                    else
-                    {
-                        itm.Name = item.Name;
+                cmd = new SqlCommand("spInsertUpdateItem", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Clear();
 
-                        db.SaveChanges();
+                cmd.Parameters.Add("@ItemId", SqlDbType.Int).Value = item.id;
+                cmd.Parameters.Add("@ItemName", SqlDbType.NVarChar).Value = item.Name;
+                cmd.Parameters.Add("@InsertUpdateStatus", SqlDbType.NVarChar).Value = "Update";
+                cmd.Parameters.Add("@CountryId", SqlDbType.Int).Value = item.CountryId;
+                cmd.Parameters.Add("@CheckReturn", SqlDbType.NVarChar, 300).Direction = ParameterDirection.Output;
 
-                        return Json(new { Status = true, Data = "Item Updated Successfully" });
-                    }
-                }
-                return Json(new { Status = false, Data = "Item Not Found" });
+                cmd.ExecuteNonQuery();
+
+                msg = cmd.Parameters["@CheckReturn"].Value.ToString();
+                cmd.Dispose();
+                con.Close();
+                con.Dispose();
+
+                //var itm = db.Items.Where(x => x.id == item.id).FirstOrDefault();
+
+                //if (itm != null)
+                //{
+                //    if (db.Items.Where(x => x.Name.Equals(item.Name)).Count() > 0)
+                //    {
+                //        return Json(new { Status = false, Data = "Item already exists." }, JsonRequestBehavior.AllowGet);
+                //    }
+                //    else
+                //    {
+                //        itm.Name = item.Name;
+
+                //        db.SaveChanges();
+
+                //        return Json(new { Status = true, Data = "Item Updated Successfully" });
+                //    }
+                //}
+                //return Json(new { Status = false, Data = "Item Not Found" });
             }
             catch (Exception ex)
             {
                 return Json(new { Status = false, Data = ex.StackTrace });
+            }
+
+            if (msg.Equals("Success"))
+            {
+                return Json(new { Status = true, Data = "Item updated Successfully." }, JsonRequestBehavior.AllowGet);
+            }
+            else
+            {
+                return Json(new { Status = false, Data = "Item updation failed." }, JsonRequestBehavior.AllowGet);
             }
         }
 
@@ -161,22 +281,50 @@ namespace Learning.Controllers
         {
             try
             {
-                Item itm = db.Items.Where(x => x.id == id).FirstOrDefault();
+                con = new SqlConnection(connString);
+                cmd = new SqlCommand("spInsertUpdateItem", con);
+                cmd.CommandType = CommandType.StoredProcedure;
 
-                if (itm == null)
+                cmd.Parameters.Add("@ItemId", SqlDbType.Int).Value = id;
+                cmd.Parameters.Add("@ItemName", SqlDbType.NVarChar).Value = "";
+                cmd.Parameters.Add("@InsertUpdateStatus", SqlDbType.NVarChar).Value = "";
+                cmd.Parameters.Add("@CountryId", SqlDbType.Int).Value = 0;
+                cmd.Parameters.Add("@CheckReturn", SqlDbType.NVarChar, 300).Direction = ParameterDirection.Output;
+
+
+                con.Open();
+                cmd.ExecuteNonQuery();
+
+                string msg = cmd.Parameters["@CheckReturn"].Value.ToString();
+                cmd.Dispose();
+                con.Close();
+
+                if (msg.Equals("Success"))
                 {
-                    return Json(new { Status = true, Data = "Item Not Found." });
+                    return Json(new { Status = true, Data = "Item deleted Successfully." }, JsonRequestBehavior.AllowGet);
                 }
                 else
                 {
-                    db.Items.Remove(itm);
-                    db.SaveChanges();
-
-                    return Json(new { Status = true, Data = "Item Deleted Successfully." });
+                    return Json(new { Status = false, Data = "Item deletion failed." }, JsonRequestBehavior.AllowGet);
                 }
+                //Item itm = db.Items.Where(x => x.id == id).FirstOrDefault();
+
+                //if (itm == null)
+                //{
+                //    return Json(new { Status = true, Data = "Item Not Found." });
+                //}
+                //else
+                //{
+                //    db.Items.Remove(itm);
+                //    db.SaveChanges();
+
+                //    return Json(new { Status = true, Data = "Item Deleted Successfully." });
+                //}
             }
             catch (Exception ex)
             {
+                cmd.Dispose();
+                con.Close();
                 return Json(new { Status = false, Data = ex.StackTrace });
             }
         }

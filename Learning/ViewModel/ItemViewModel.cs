@@ -10,5 +10,6 @@ namespace Learning.ViewModel
     {
         public ItemModel Item { get; set; }
         public List<ItemModel> ItemsList { get; set; }
+        public List<CountryModel> CountriesList { get; set; }
     }
 }

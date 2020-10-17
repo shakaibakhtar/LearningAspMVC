@@ -12,10 +12,9 @@ namespace Learning.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class Item
+    public partial class tblCountry
     {
         public int id { get; set; }
-        public string Name { get; set; }
-        public Nullable<int> CountryId { get; set; }
+        public string name { get; set; }
     }
 }

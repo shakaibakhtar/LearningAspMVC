@@ -25,7 +25,8 @@
         <thead>
             <tr>
                 <th data-priority="1"> Item ID</th>
-                <th data-hide="phone,tablet,desktop"> Item Name</th>
+                <th data-priority="3"> Item Name</th>
+                <th data-priority="4"> Country</th>
                 <th data-priority="2"> Action</th>
             </tr>
         </thead>
@@ -82,6 +83,7 @@
             "columns": [
                 { "data": "id", "name": "id", "autoWidth": true },
                 { "data": "Name", "name": "Name", "autoWidth": true },
+                { "data": "Country", "name": "Country", "autoWidth": true },
 
                 {
                     "data": "id", "width": "50px", "class": "Acenter", "orderable": false, "render": function (data) {

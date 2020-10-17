@@ -11,5 +11,7 @@ namespace Learning.Models
         public int id { get; set; }
         [Required]
         public string Name { get; set; }
+        public int? CountryId { get; set; }
+        public string Country { get; set; }
     }
 }

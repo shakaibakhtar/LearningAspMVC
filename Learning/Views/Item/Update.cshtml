@@ -21,10 +21,13 @@
             </div>
         }*@
 
-    <form id="form" action="/Item/Create" method="post">
-        <input type="text" class="form-control" id="txtItemId" value="@Model.id.ToString()" style="display: none;"/>
+    <form id="form" action="javascript:alert();" method="post">
+        <input type="text" class="form-control" id="txtItemId" name="txtItemId" value="@Model.id.ToString()" style="display: none;" />
         <div class="form-group">
-            <input type="text" class="form-control" id="txtItemName" value="@Model.Name" />
+            <input type="text" class="form-control" id="txtItemName" name="txtItemName" value="@Model.Name" />
+        </div>
+        <div class="form-group">
+            @Html.DropDownListFor(model => model.CountryId, ViewBag.Countries as SelectList, new { @class = "form-control", @id = "ddCountry" })
         </div>
         <div class="form-group">
             <input type="submit" class="btn btn-success" value="Update" />
@@ -38,23 +41,39 @@ else
     </script>
 }
 
+<script src="~/Scripts/jquery-3.4.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.2/jquery.validate.min.js" integrity="sha512-UdIMMlVx0HEynClOIFSyOrPggomfhBKJE28LKl8yR3ghkgugPnG6iLfRfHwushZl1MOPSY6TsuBDGPK2X4zYKg==" crossorigin="anonymous"></script>
 <script>
-    $('#form').on('submit', function (e) {
-        e.preventDefault();
-
-        var id = $('#txtItemId').val();
-        var name = $('#txtItemName').val();
-
-        $.ajax({
-            type: "POST",
-            url: "/Item/Update",
-            data: { id: id, Name: name },
-            dataType: 'json',
-            success: function (data) {
-                alert(data.Data);
-                if (data.Status) {
-                    window.location.replace("/Item/");
+    $(document).ready(function () {
+        $('#form').validate({
+            rules: {
+                txtItemName: {
+                    required: true,
+                    minlength: 3
+                },
+                CountryId: {
+                    required: true
                 }
+            },
+            submitHandler: function () {
+                var id = $('#txtItemId').val();
+                var name = $('#txtItemName').val();
+                var country = $('#ddCountry').val();
+
+                $.ajax({
+                    type: "POST",
+                    url: "/Item/Update",
+                    data: { id: id, Name: name, CountryId: country },
+                    dataType: 'json',
+                    success: function (data) {
+                        alert(data.Data);
+                        if (data.Status) {
+                            window.location.replace("/Item/");
+                        }
+                    }
+                });
+
+                return false;
             }
         });
     });

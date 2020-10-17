@@ -1,34 +1,60 @@
-﻿@model Learning.ViewModel.ItemViewModel
+﻿@model Learning.Models.ItemModel
 
 @{
     ViewBag.Title = "Create";
 }
 
 <h3>Create Item</h3>
-<form id="form" action="/Item/Create" method="post">
+<form id="form" action="javascript:void(0);" method="post">
     <div class="form-group">
-        <input type="text" class="form-control" id="txtItemName" />
+        <input type="text" class="form-control" id="txtItemName" name="txtItemName" />
+    </div>
+    <div class="form-group">
+        @*<select class="form-control" id="ddCountry">
+                @foreach (var country in Model.CountriesList)
+                {
+                    <option value="@country.id">@country.name</option>
+                }
+            </select>*@
+        @Html.DropDownListFor(model => model.CountryId, ViewBag.Countries as SelectList, new { @class = "form-control", @id = "ddCountry" })
     </div>
     <div class="form-group">
         <input type="submit" class="btn btn-success" value="Save" />
     </div>
 </form>
 
+<script src="~/Scripts/jquery-3.4.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.2/jquery.validate.min.js" integrity="sha512-UdIMMlVx0HEynClOIFSyOrPggomfhBKJE28LKl8yR3ghkgugPnG6iLfRfHwushZl1MOPSY6TsuBDGPK2X4zYKg==" crossorigin="anonymous"></script>
 <script>
-    $('#form').on('submit', function (e) {
-        e.preventDefault();
-        var name = $('#txtItemName').val();
-
-        $.ajax({
-            type: "POST",
-            url: "/Item/Create",
-            data: { Name: name },
-            dataType: 'json',
-            success: function (data) {
-                alert(data.Data);
-                if (data.Status) {
-                    window.location.replace("/Item/");
+    $(document).ready(function () {
+        $('#form').validate({
+            rules: {
+                txtItemName: {
+                    required: true,
+                    minlength: 3
+                },
+                CountryId: {
+                    required: true
                 }
+            },
+            submitHandler: function () {
+                var name = $('#txtItemName').val();
+                var country = $('#ddCountry').val();
+
+                $.ajax({
+                    type: "POST",
+                    url: "/Item/Create",
+                    data: { Name: name, CountryId: country },
+                    dataType: 'json',
+                    success: function (data) {
+                        alert(data.Data);
+                        if (data.Status) {
+                            window.location.replace("/Item/");
+                        }
+                    }
+                });
+
+                return false;
             }
         });
     });
