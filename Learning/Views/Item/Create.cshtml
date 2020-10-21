@@ -4,6 +4,8 @@
     ViewBag.Title = "Create";
 }
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" integrity="sha512-nMNlpuaDPrqlEls3IX/Q56H36qvBASwb3ipuo3MxeWbsQB1881ox0cRv7UPTgBlriqoynt35KjEwgGUeUXIPnw==" crossorigin="anonymous" />
+
 <h3>Create Item</h3>
 <form id="form" action="javascript:void(0);" method="post">
     <div class="form-group">
@@ -16,7 +18,9 @@
                     <option value="@country.id">@country.name</option>
                 }
             </select>*@
-        @Html.DropDownListFor(model => model.CountryId, ViewBag.Countries as SelectList, new { @class = "form-control", @id = "ddCountry" })
+        <select class="form-control" id="ddCountry" name="ddCountry">
+        </select>
+        @*@Html.DropDownListFor(model => model.CountryId, ViewBag.Countries as SelectList, new { @class = "form-control", @id = "ddCountry" })*@
     </div>
     <div class="form-group">
         <input type="submit" class="btn btn-success" value="Save" />
@@ -25,8 +29,42 @@
 
 <script src="~/Scripts/jquery-3.4.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.2/jquery.validate.min.js" integrity="sha512-UdIMMlVx0HEynClOIFSyOrPggomfhBKJE28LKl8yR3ghkgugPnG6iLfRfHwushZl1MOPSY6TsuBDGPK2X4zYKg==" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js" integrity="sha512-2ImtlRlf2VVmiGZsjm9bEyhjGW4dU7B6TNwh/hx/iSByxNENtj3WVE6o/9Lj4TJeVXPi4bnOIMXFIJJAeufa0A==" crossorigin="anonymous"></script>
 <script>
     $(document).ready(function () {
+        var pageSize = 3;
+        var optionListUrl = '/Item/GetCountriesList';
+
+        $('#ddCountry').select2({
+                ajax: {
+                    delay: 150,
+                    url: optionListUrl,
+                    dataType: 'json',
+
+                    data: function (params) {
+                        params.page = params.page || 1;
+                        return {
+                            searchTerm: params.term,
+                            pageSize: pageSize,
+                            pageNumber: params.page
+                        };
+                    },
+                    processResults: function (data, params) {
+                        params.page = params.page || 1;
+                        return {
+                            results: data.Results,
+                            pagination: {
+                                more: (params.page * pageSize) < data.Total
+                            }
+                        };
+                    }
+                },
+                placeholder: "-- Select Country --",
+                minimumInputLength: 0,
+            allowClear: true,
+            theme: "classic",
+        });
+
         $('#form').validate({
             rules: {
                 txtItemName: {

@@ -131,9 +131,11 @@
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ItemController.cs" />
+    <Compile Include="Controllers\SaleController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\clsList.cs" />
     <Compile Include="Models\CountryModel.cs" />
     <Compile Include="Models\DbModel.Context.cs">
       <AutoGen>True</AutoGen>
@@ -154,6 +156,7 @@
       <DependentUpon>DbModel.tt</DependentUpon>
     </Compile>
     <Compile Include="Models\ItemModel.cs" />
+    <Compile Include="Models\Select2PagedResult.cs" />
     <Compile Include="Models\tblCountry.cs">
       <DependentUpon>DbModel.tt</DependentUpon>
     </Compile>
@@ -237,6 +240,7 @@
     <Content Include="Views\Item\Index.cshtml" />
     <Content Include="Views\Item\Read.cshtml" />
     <Content Include="Views\Item\Update.cshtml" />
+    <Content Include="Views\Sale\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
